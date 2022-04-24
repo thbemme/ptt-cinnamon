@@ -1,6 +1,4 @@
 {
-    "max-instances": "1", 
-    "dangerous": false,
     "uuid": "ptt@thomasbemme",
     "name": "PTT Applet",
     "description": "Push-to-talk applet and microphone indicator"
