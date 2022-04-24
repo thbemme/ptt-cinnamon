@@ -35,7 +35,7 @@ MyApplet.prototype = {
             this.settings.bindProperty(Settings.BindingDirection.IN,
                 "darkmode",
                 "darkmode",
-                this.set_darkmode,
+                this.set_icon_mode,
                 null);
         } catch (e) {
             global.logError(e);
@@ -48,17 +48,17 @@ MyApplet.prototype = {
         this.active = false;
         this.ptt_active = false;
         this.ptt_active_time = 0;
-        this.is_audio_muted();
+        this.current_mode = this.get_mic_mode();
+        this.last_mode = 0;
         this.preserve_state = this.is_muted;
-        this.set_darkmode();
-        this.set_icon();
+        this.set_icon_mode();
         this.set_applet_icon_name(this.icon_mic_on);
         this.set_applet_tooltip(_('Click or press ' + this.keybinding_ptt_toggle + ' to activate PTT'));
         this.keybindset_ptt_toggle();
         global.log("PTT Applet: Initializing ptt loop");
         this.refresh_loop();
     },
-    set_darkmode: function() {
+    set_icon_mode: function() {
         if (this.darkmode) {
             this.icon_mic_off = "micoff_dark";
             this.icon_mic_on = "microphone_dark";
@@ -70,21 +70,24 @@ MyApplet.prototype = {
             this.icon_mic_capture = "micon";
             this.icon_mic_pause = "micready";
         }
+        this.set_icon();
     },
     refresh_loop: function() {
-        this.is_audio_muted();
-        if (this.active) {
-
-            if (this.ptt_active && this.is_muted) {
-                this.set_cap();
+        this.current_mode = this.get_mic_mode();
+        if (this.last_mode != this.current_mode) {
+            if (this.active) {
+                if (this.ptt_active && this.is_muted) {
+                    this.set_cap();
+                }
+                if (!this.ptt_active && !this.is_muted) {
+                    this.set_nocap();
+                }
             }
-            if (!this.ptt_active && !this.is_muted) {
-                this.set_nocap();
-            }
+            this.set_icon();
         }
         Mainloop.timeout_add(500, Lang.bind(this, this.refresh_loop));
-        this.set_icon();
         this.ptt_active = false;
+        this.last_mode = this.current_mode;
     },
     ptt_activate: function() {
         this.ptt_active = true;
@@ -112,7 +115,7 @@ MyApplet.prototype = {
         Main.keybindingManager.removeHotKey(this.keybindid);
     },
 
-    is_audio_muted: function() {
+    get_mic_mode: function() {
         try {
             let cmd = ["bash", "-c", "amixer sget Capture"];
             Util.spawn_async(cmd, (stdout) => {
@@ -129,24 +132,66 @@ MyApplet.prototype = {
         } catch (e) {
             global.logError(e);
         }
-    },
-    set_icon: function() {
         if (this.active) {
             if (this.is_muted) {
-                this.current_icon = this.icon_mic_pause;
-                this.set_applet_icon_name(this.icon_mic_pause);
+                if (!this.ptt_active) {
+                    return 3; //PTT Enabled, Mic Disabled
+                } else {
+                    return 5; //PTT Active, Mic to be activated
+                }
             } else {
-                this.current_icon = this.icon_mic_capture;
-                this.set_applet_icon_name(this.icon_mic_capture);
+                if (!this.ptt_active) {
+                    return 6; //PTT Enabled, Mic to be deactivated
+                } else {
+                    return 4; //PTT Active, Mic activated
+                }
+
             }
         } else {
             if (this.is_muted) {
+                return 1; //PTT Disabled, Mic Disabled
+            } else {
+                return 2; //PTT Disabled, Mic Enabled
+            }
+        }
+    },
+    set_icon: function() {
+        switch (this.current_mode) {
+            case 1:
                 this.current_icon = this.icon_mic_off;
                 this.set_applet_icon_name(this.icon_mic_off);
-            } else {
+                global.log("PTT Applet: Set Icon: off");
+                break;
+            case 2:
                 this.current_icon = this.icon_mic_on;
                 this.set_applet_icon_name(this.icon_mic_on);
-            }
+                global.log("PTT Applet: Set Icon: on");
+                break;
+            case 3:
+                this.current_icon = this.icon_mic_pause;
+                this.set_applet_icon_name(this.icon_mic_pause);
+                global.log("PTT Applet: Set Icon: pause");
+                break;
+            case 4:
+                this.current_icon = this.icon_mic_capture;
+                this.set_applet_icon_name(this.icon_mic_capture);
+                global.log("PTT Applet: Set Icon: capture");
+                break;
+            case 5:
+                this.current_icon = this.icon_mic_capture;
+                this.set_applet_icon_name(this.icon_mic_capture);
+                global.log("PTT Applet: Set Icon: capture");
+                break;
+            case 6:
+                this.current_icon = this.icon_mic_pause;
+                this.set_applet_icon_name(this.icon_mic_pause);
+                global.log("PTT Applet: Set Icon: pause");
+                break;
+            default:
+                this.current_icon = this.icon_mic_on;
+                this.set_applet_icon_name(this.icon_mic_on);
+                global.log("PTT Applet: Set Icon: default");
+
         }
     },
 
@@ -167,7 +212,7 @@ MyApplet.prototype = {
         } catch (e) {
             global.logError(e);
         }
-        global.log("PTT Applet: Starting capture");
+        global.log("PTT Applet: Enable microphone capture");
     },
     set_nocap: function() {
         try {
@@ -186,7 +231,7 @@ MyApplet.prototype = {
         } catch (e) {
             global.logError(e);
         }
-        global.log("PTT Applet: Stoping capture");
+        global.log("PTT Applet: Disable microphone capture");
     },
     on_applet_clicked: function(event) {
         if (this.active) {
@@ -204,7 +249,8 @@ MyApplet.prototype = {
             this.preserve_state = this.is_muted;
             this.active = true;
             this.keybindset_ptt_activate();
-            this.set_applet_tooltip(_('PTT is active, '+ this.keybinding_ptt_key + ' to talk'));
+            this.set_applet_tooltip(_('PTT is active, ' + this.keybinding_ptt_key + ' to talk'));
+            this.set_nocap();
             global.log("PTT Applet: Enable ptt and add keybind");
         }
     },
