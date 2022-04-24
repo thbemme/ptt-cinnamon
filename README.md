@@ -4,7 +4,7 @@ PTT applet and microphone indicator for Cinnamon environemt.
 
 ## Installation
 
-Copy files/ptt@thomasbemme to .local/share/cinnamon/applets/, activate through the Applet Menu.
+Copy files/ptt@thbemme to .local/share/cinnamon/applets/, activate through the Applet Menu.
 
 ## Icons
 Icons based on Breeze Icons https://invent.kde.org/frameworks/breeze-icons

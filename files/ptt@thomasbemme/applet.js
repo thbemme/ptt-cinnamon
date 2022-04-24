@@ -5,7 +5,7 @@ const Util = imports.misc.util;
 const Mainloop = imports.mainloop;
 const Settings = imports.ui.settings;
 
-const UUID = "ptt@thomasbemme";
+const UUID = "ptt@thbemme";
 
 function MyApplet(orientation, panel_height, instance_id) {
     this._init(orientation, panel_height, instance_id);
