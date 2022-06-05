@@ -42,7 +42,7 @@ MyApplet.prototype = {
             global.log("PTT Applet: Error initializing from Settings, continuing.")
             this.settings = null;
             this.keybinding_ptt_toggle = "F12";
-            this.keybinding_ptt_key = "F11"
+            this.keybinding_ptt_key = "F9"
         }
 
         this.active = false;
@@ -53,7 +53,7 @@ MyApplet.prototype = {
         this.preserve_state = this.is_muted;
         this.set_icon_mode();
         this.set_applet_icon_name(this.icon_mic_on);
-        this.set_applet_tooltip(_('Click or press ' + this.keybinding_ptt_toggle + ' to activate PTT'));
+        this.set_applet_tooltip(_('Click or press ' + this.keybinding_ptt_toggle.replace(/[^\w]/g, "") + ' to activate PTT'));
         this.keybindset_ptt_toggle();
         global.log("PTT Applet: Initializing ptt loop");
         this.refresh_loop();
@@ -160,38 +160,30 @@ MyApplet.prototype = {
             case 1:
                 this.current_icon = this.icon_mic_off;
                 this.set_applet_icon_name(this.icon_mic_off);
-                global.log("PTT Applet: Set Icon: off");
                 break;
             case 2:
                 this.current_icon = this.icon_mic_on;
                 this.set_applet_icon_name(this.icon_mic_on);
-                global.log("PTT Applet: Set Icon: on");
                 break;
             case 3:
                 this.current_icon = this.icon_mic_pause;
                 this.set_applet_icon_name(this.icon_mic_pause);
-                global.log("PTT Applet: Set Icon: pause");
                 break;
             case 4:
                 this.current_icon = this.icon_mic_capture;
                 this.set_applet_icon_name(this.icon_mic_capture);
-                global.log("PTT Applet: Set Icon: capture");
                 break;
             case 5:
                 this.current_icon = this.icon_mic_capture;
                 this.set_applet_icon_name(this.icon_mic_capture);
-                global.log("PTT Applet: Set Icon: capture");
                 break;
             case 6:
                 this.current_icon = this.icon_mic_pause;
                 this.set_applet_icon_name(this.icon_mic_pause);
-                global.log("PTT Applet: Set Icon: pause");
                 break;
             default:
                 this.current_icon = this.icon_mic_on;
                 this.set_applet_icon_name(this.icon_mic_on);
-                global.log("PTT Applet: Set Icon: default");
-
         }
     },
 
@@ -237,7 +229,7 @@ MyApplet.prototype = {
         if (this.active) {
             this.active = false;
             this.keybindremove_ptt_activate();
-            this.set_applet_tooltip(_('Click or press ' + this.keybinding_ptt_toggle + ' to activate PTT'));
+            this.set_applet_tooltip(_('Click or press ' + this.keybinding_ptt_toggle.replace(/[^\w]/g, "") + ' to activate PTT'));
             global.log("PTT Applet: Disable ptt and remove keybind");
             if (this.preserve_state) {
                 this.set_nocap();
@@ -249,7 +241,7 @@ MyApplet.prototype = {
             this.preserve_state = this.is_muted;
             this.active = true;
             this.keybindset_ptt_activate();
-            this.set_applet_tooltip(_('PTT is active, ' + this.keybinding_ptt_key + ' to talk'));
+            this.set_applet_tooltip(_('PTT is active, ' + this.keybinding_ptt_key.replace(/[^\w]/g, "") + ' to talk'));
             this.set_nocap();
             global.log("PTT Applet: Enable ptt and add keybind");
         }
